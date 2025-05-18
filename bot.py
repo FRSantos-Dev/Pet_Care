@@ -1,6 +1,6 @@
 import logging
 from telegram import Update
-from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
+from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext
 from pet_care_data import get_response
 
 # Enable logging
@@ -10,37 +10,41 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+def start(update: Update, context: CallbackContext):
     """Send a welcome message when the command /start is issued."""
     response = get_response("start")
-    await update.message.reply_text(response)
+    update.message.reply_text(response)
 
-async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+def help_command(update: Update, context: CallbackContext):
     """Send a help message when the command /help is issued."""
     response = get_response("help")
-    await update.message.reply_text(response)
+    update.message.reply_text(response)
 
-async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
+def handle_message(update: Update, context: CallbackContext):
     """Handle user messages and provide appropriate responses."""
     response = get_response(update.message.text)
-    await update.message.reply_text(response)
+    update.message.reply_text(response)
 
 def main():
     """Start the bot."""
     # Token do bot
     TOKEN = "8136664320:AAGY1pTx-jqaqHpv4gxEcOiiBI6CwTmhR1g"
 
-    # Create the Application
-    application = Application.builder().token(TOKEN).build()
+    # Create the Updater
+    updater = Updater(TOKEN)
+
+    # Get the dispatcher to register handlers
+    dispatcher = updater.dispatcher
 
     # Add handlers
-    application.add_handler(CommandHandler("start", start))
-    application.add_handler(CommandHandler("help", help_command))
-    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
+    dispatcher.add_handler(CommandHandler("start", start))
+    dispatcher.add_handler(CommandHandler("help", help_command))
+    dispatcher.add_handler(MessageHandler(Filters.text & ~Filters.command, handle_message))
 
     # Start the bot
     print("Bot iniciado! Pressione Ctrl+C para parar.")
-    application.run_polling(allowed_updates=Update.ALL_TYPES)
+    updater.start_polling()
+    updater.idle()
 
 if __name__ == '__main__':
     main()
